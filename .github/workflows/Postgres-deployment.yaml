@@ -1,0 +1,133 @@
+name: Deploy
+
+on: 
+ workflow_dispatch:
+    inputs:
+      postgres-operator-version:
+        description: 'postgres-opertor version'
+        required: true
+        default: 'v1.10.1'
+      postgre-spilo-version:
+        description: 'postgres spilo version'
+        required: true
+        default: '3.0-p1'
+      postgres_operator_image_repo:
+        description: 'postgres operator imgae repo'
+        required: true
+        default: 'coredgeio/postgres-operator'
+      postgres_spilo_image_repo:
+        description: 'postgres spilo repo'
+        required: true
+        default: 'docker.io/coredgeio/postgres-spilo'
+        
+
+jobs:
+  deploy:
+    runs-on:
+      - devops-runner
+    
+    steps:
+    - name: Set up kubectl
+      uses: azure/k8s-set-context@v1
+      with:
+        kubeconfig: ${{ secrets.ADMIN_CONF }}
+    - name: setup postgres operator
+      env:
+         GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+      run: |
+         rm -rf spilo
+         git clone https://avnshrai:${{secrets.GIT_TOKEN}}@github.com/coredgeio/spilo.git
+         cd spilo
+         helm repo add postgres-operator-charts https://opensource.zalando.com/postgres-operator/charts/postgres-operator
+         helm repo update
+         helm install postgres-operator postgres-operator-charts/postgres-operator --set configGeneral.docker_image=${{ github.event.inputs.postgres_spilo_image_repo}}:${{ github.event.inputs.postgre-spilo-version }} --namespace postgres --create-namespace --set image.registry=docker.io --set image.repository=${{ github.event.inputs.postgres_operator_image_repo }} --set image.tag=${{ github.event.inputs.postgres-operator-version }}
+
+    - name: Check Operator Pod Status
+      run: |
+        operatorPod=$(kubectl get pod -l app.kubernetes.io/name=postgres-operator -n postgres -o jsonpath="{.items[0].metadata.name}")
+        kubectl wait --for=condition=Ready pod/$operatorPod -n postgres --timeout=60s
+         
+    - name: Setup server
+      run: |
+        cat << EOF > postgres-config.yaml
+        apiVersion: "acid.zalan.do/v1"
+        kind: postgresql
+        metadata:
+          name: postgres-test-cd
+        spec:
+          teamId: "dbaas"
+          resources:
+            requests:
+              cpu: 10m
+              memory: 100Mi
+            limits:
+              cpu: 500m
+              memory: 500Mi
+          volume:
+            size: 10Gi
+          numberOfInstances: 3
+          users:
+            zalando:
+            - superuser
+            - createdb
+          databases:
+            foo: zalando
+          postgresql:
+            version: "15"
+            parameters:
+              shared_buffers: "32MB"
+              max_connections: "100"
+              log_statement: "all"
+          connectionPooler:
+            numberOfInstances: 1
+          enableMasterLoadBalancer: true
+          enableReplicaLoadBalancer: false
+          enableConnectionPooler: true
+          enableReplicaConnectionPooler: false
+          enableMasterPoolerLoadBalancer: false
+          enableReplicaPoolerLoadBalancer: false
+          enableLogicalBackup: false
+        EOF
+        kubectl apply -f postgres-config.yaml -n postgres
+        echo "PostgreSQL configuration applied."
+
+    - name: Wait for PSMDB to become ready
+      run: |
+        retries=0
+        maxRetries=30
+        untilReady=false
+
+        # Fetch the label to use from deployed resource
+        label=$(kubectl get postgresql postgres-test-cd -n postgres -o jsonpath="{.metadata.labels['app.kubernetes.io/name']}")
+
+        # Loop until the pods are 'Ready' or retries are exhausted
+        echo "Checking pods status..."
+        while [ $retries -lt $maxRetries ]; do
+          allReady=true
+          
+          for pod in $(kubectl get pods -l app.kubernetes.io/name=$label -n postgres -o jsonpath="{.items[*].metadata.name}"); do
+            status=$(kubectl get pod $pod -n postgres -o jsonpath="{.status.conditions[?(@.type=='Ready')].status}")
+            echo "Current status for $pod: $status"
+            
+            if [ "$status" != "True" ]; then
+              allReady=false
+            fi
+          done
+
+          if [ "$allReady" == true ]; then
+            untilReady=true
+            break
+          fi
+
+          sleep 10
+          retries=$((retries+1))
+        done
+
+        if [ "$untilReady" == true ]; then
+          echo "All PostgreSQL pods are ready."
+        else
+          echo "PostgreSQL pods did not become ready in time."
+          exit 1
+        fi
+
+         
