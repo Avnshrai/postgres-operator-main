@@ -105,3 +105,34 @@ jobs:
         with:
           name: Trivy Scan HTML Report
           path: trivy-image-results.html
+ 
+  e2e-tests:
+    needs: packer  # Ensure this job runs only after the packer job completes successfully
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      - name: Set up Kubernetes
+        uses: engineerd/setup-kind@v0.5.0
+        with:
+          version: "v0.11.1"
+
+      - name: Load Docker Image to Kind
+        run: |
+          kind load docker-image ${{ needs.packer.outputs.image_tag }} --name postgres-operator
+
+      - name: Run End-to-End Tests
+        run: bash ./postgres-operator/e2e/run.sh run_tests ${{ needs.packer.outputs.image_tag }}
+        env:
+          KUBECONFIG: ${{ github.workspace }}/kubeconfig
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: E2E Test Results
+          path: test-results.xml
+
+      - name: Print Test Results Summary
+        run: cat test-results.xml
