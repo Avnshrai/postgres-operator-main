@@ -122,6 +122,8 @@ jobs:
         env:
          APP_NAME: "postgres-operator"
         run: |
+          pwd
+          docker pull coredgeio/${{ env.APP_NAME }}:latest
           kind load docker-image coredgeio/${{ env.APP_NAME }}:latest --name postgres-operator
 
       - name: Run End-to-End Tests
