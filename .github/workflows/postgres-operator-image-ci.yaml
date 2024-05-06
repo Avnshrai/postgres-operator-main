@@ -128,7 +128,7 @@ jobs:
           kind load docker-image coredgeio/${{ env.APP_NAME }}:latest --name postgres-operator
 
       - name: Run End-to-End Tests
-        run: bash ./postgres-operator/e2e/run.sh run_tests coredgeio/${{ env.APP_NAME }}:latest 
+        run: bash ./e2e/run.sh run_tests coredgeio/${{ env.APP_NAME }}:latest 
         env:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
 
