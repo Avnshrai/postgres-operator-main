@@ -68,8 +68,8 @@ build {
       "make docker",
       "docker tag coredgeio/postgres-operator:${var.tag} coredgeio/postgres-operator:latest",
       "docker login -u ${var.docker_username} -p ${var.docker_password}",
-      "docker push coredgeio/postgres-operator:${var.tag}",
-      "docker push coredgeio/postgres-operator:latest",
+      #"docker push coredgeio/postgres-operator:${var.tag}",
+      #"docker push coredgeio/postgres-operator:latest",
     ]
   }
 
