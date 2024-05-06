@@ -8,7 +8,7 @@ IFS=$'\n\t'
 
 readonly cluster_name="postgres-operator-e2e-tests"
 readonly kubeconfig_path="/tmp/kind-config-${cluster_name}"
-# Update the Spilo image tag to use a dynamic tag passed via arguments, as assumed previously
+# Update the Spilo image tag to use a dynamic tag passed via arguments
 readonly spilo_image="coredgeio/postgres-spilo:${1}"
 # Use the specific e2e test runner image as requested
 readonly e2e_test_runner_image="registry.opensource.zalan.do/acid/postgres-operator-e2e-tests-runner:0.4"
@@ -19,15 +19,15 @@ export PATH=${GOPATH}/bin:$PATH
 echo "Clustername: ${cluster_name}"
 echo "Kubeconfig path: ${kubeconfig_path}"
 
-function pull_images(){
-  operator_tag="${2}"  # Now assuming the operator tag is passed as the second argument to the script
+function pull_images() {
+  operator_tag="${2}"  # Assuming the operator tag is passed as the second argument
   echo "Using operator image tag: ${operator_tag}"
   operator_image="coredgeio/postgres-operator:${operator_tag}"
   docker pull "${operator_image}"  # Pull the specified operator image
   docker pull "${spilo_image}"     # Pull the specified Spilo image
 }
 
-function start_kind(){
+function start_kind() {
   echo "Starting kind for e2e tests"
   # avoid interference with previous test runs
   if [[ $(kind get clusters | grep "^${cluster_name}*") != "" ]]
@@ -36,7 +36,7 @@ function start_kind(){
   fi
 
   export KUBECONFIG="${kubeconfig_path}"
-  kind create cluster --name ${cluster_name} --config kind-cluster-postgres-operator-e2e-tests.yaml  
+  kind create cluster --name ${cluster_name} --config kind-cluster-postgres-operator-e2e-tests.yaml
   kind load docker-image "${spilo_image}" --name ${cluster_name}
   kind load docker-image "${operator_image}" --name ${cluster_name}
 }
@@ -47,9 +47,7 @@ function load_operator_image() {
   kind load docker-image "${operator_image}" --name ${cluster_name}
 }
 
-# Rest of the script remains unchanged
-
-function main(){
+function main() {
   echo "Entering main function..."
   [[ -z ${NOCLEANUP-} ]] && trap "cleanup" QUIT TERM EXIT
   pull_images "$@"  # Pass all command-line arguments to the pull_images function
@@ -63,4 +61,5 @@ function main(){
   exit 0
 }
 
-"$1" $@
+# Call the main function with all command-line arguments
+main "$@"
