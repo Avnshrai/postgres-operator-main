@@ -2,7 +2,8 @@ name: postgres operator Packer Image CI Build
 
 on: 
  workflow_dispatch: 
-e2e-tests:
+jobs:
+  e2e-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
