@@ -90,8 +90,8 @@ function cleanup(){
 function main(){
   echo "Entering main function..."
   [[ -z ${NOCLEANUP-} ]] && trap "cleanup" QUIT TERM EXIT
-  operator_tag="$1"
-  pull_images
+  local operator_tag="$1"
+  pull_images "${operator_tag}"
   [[ ! -f ${kubeconfig_path} ]] && start_kind
   load_operator_image
   set_kind_api_server_ip
@@ -102,5 +102,5 @@ function main(){
   exit 0
 }
 
-"$1" $@
+main "$@"
 
