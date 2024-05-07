@@ -1,0 +1,40 @@
+name: postgres operator Packer Image CI Build
+
+on: 
+ workflow_dispatch: 
+e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+
+      # - name: Set up Kubernetes
+      #   uses: engineerd/setup-kind@v0.5.0
+      #   with:
+      #     name: postgres-operator
+      #     version: "v0.11.1"
+
+      # - name: Load Docker Image to Kind
+      #   env:
+      #    APP_NAME: "postgres-operator"
+      #   run: |
+      #     pwd
+      #     docker pull coredgeio/${{ env.APP_NAME }}:v1.10.1
+      #     docker pull coredgeio/postgres-spilo:3.0-p1
+      #     kind load docker-image coredgeio/${{ env.APP_NAME }}:v1.10.1 --name postgres-operator
+      #     kind load docker-image coredgeio/postgres-spilo:3.0-p1  --name postgres-operator
+
+      - name: Run End-to-End Tests
+        run: bash ./e2e/run.sh main 3.0-p1 v1.10.1
+        env:
+          KUBECONFIG: ${{ github.workspace }}/kubeconfig
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: E2E Test Results
+          path: test-results.xml
+
+      - name: Print Test Results Summary
+        run: cat test-results.xml
