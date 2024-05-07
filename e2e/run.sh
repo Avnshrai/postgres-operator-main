@@ -18,8 +18,8 @@ echo "Clustername: ${cluster_name}"
 echo "Kubeconfig path: ${kubeconfig_path}"
 
 function pull_images(){
-  spilo_tag="$1"
-  operator_tag="$2"
+  local spilo_tag="$1"
+  local operator_tag="$2"
   if [[ -z $(coredgeio/postgres-operator:${operator_tag}) ]]
   then
     docker pull coredgeio/postgres-operator:${operator_tag}
