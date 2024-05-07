@@ -73,7 +73,7 @@ function run_tests(){
   docker run --rm --network=host -e "TERM=xterm-256color" \
   --mount type=bind,source="$(readlink -f ${kubeconfig_path})",target=/root/.kube/config \
   --mount type=bind,source="$(readlink -f manifests)",target=/manifests \
-  --mount type=bind,source="$(readlink -f tls)",target=/tls \
+  # --mount type=bind,source="$(readlink -f tls)",target=/tls \
   --mount type=bind,source="$(readlink -f tests)",target=/tests \
   --mount type=bind,source="$(readlink -f exec.sh)",target=/exec.sh \
   --mount type=bind,source="$(readlink -f scripts)",target=/scripts \
@@ -95,7 +95,7 @@ function main(){
   [[ ! -f ${kubeconfig_path} ]] && start_kind
   load_operator_image
   set_kind_api_server_ip
-  generate_certificate
+  # generate_certificate
 
   shift
   run_tests $@
