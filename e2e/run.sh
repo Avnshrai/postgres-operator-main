@@ -73,9 +73,9 @@ function run_tests(){
   docker run --rm --network=host -e "TERM=xterm-256color" \
   --mount type=bind,source="$(readlink -f ${kubeconfig_path})",target=/root/.kube/config \
   --mount type=bind,source="$(readlink -f manifests)",target=/manifests \
-  --mount type=bind,source="$(readlink -f tests)",target=/tests \
-  --mount type=bind,source="$(readlink -f exec.sh)",target=/exec.sh \
-  --mount type=bind,source="$(readlink -f scripts)",target=/scripts \
+  --mount type=bind,source="$(readlink -f e2e/tests)",target=/tests \
+  --mount type=bind,source="$(readlink -f e2e/exec.sh)",target=/exec.sh \
+  --mount type=bind,source="$(readlink -f e2e/scripts)",target=/scripts \
   -e OPERATOR_IMAGE="${operator_image}" "${e2e_test_runner_image}" ${E2E_TEST_CASE-} $@
 }
 
