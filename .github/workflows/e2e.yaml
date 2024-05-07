@@ -1,4 +1,4 @@
-name: postgres operator Packer Image CI Build
+name: e2e
 
 on: 
  workflow_dispatch: 
