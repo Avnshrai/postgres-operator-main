@@ -36,7 +36,7 @@ function start_kind() {
   fi
 
   export KUBECONFIG="${kubeconfig_path}"
-  kind create cluster --name ${cluster_name} --config kind-cluster-postgres-operator-e2e-tests.yaml
+  kind create cluster --name ${cluster_name} --config e2e/kind-cluster-postgres-operator-e2e-tests.yaml
   kind load docker-image "${spilo_image}" --name ${cluster_name}
   kind load docker-image "${operator_image}" --name ${cluster_name}
 }
