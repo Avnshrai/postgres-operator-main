@@ -36,11 +36,16 @@ function start_kind(){
   then
     kind delete cluster --name ${cluster_name}
   fi
-
+  echo "export and create cluster"
   export KUBECONFIG="${kubeconfig_path}"
   kind create cluster --name ${cluster_name} --config e2e/kind-cluster-postgres-operator-e2e-tests.yaml  
+  echo "export and create cluster done!"
+  echo "pulling spilo image"
   docker pull "${spilo_image}"
+  echo "done pulling spilo image"
+  echo "kind load"
   kind load docker-image "${spilo_image}" --name ${cluster_name}
+  echo "kind load done"
 }
 
 function load_operator_image() {
