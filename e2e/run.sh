@@ -18,13 +18,15 @@ echo "Clustername: ${cluster_name}"
 echo "Kubeconfig path: ${kubeconfig_path}"
 
 function pull_images(){
+  echo "pulling image"
   local spilo_tag="$1"
   local operator_tag="$2"
   if [[ -z $(coredgeio/postgres-operator:${operator_tag}) ]]
   then
     docker pull coredgeio/postgres-operator:${operator_tag}
   fi
-  operator_image=$(docker images --filter=reference="coredgeio/postgres-operator" --format "{{.Repository}}:{{.Tag}}" | head -1)
+  operator_image="coredgeio/postgres-operator:${operator_tag}"
+  echo "pulling image done!"
 }
 
 function start_kind(){
