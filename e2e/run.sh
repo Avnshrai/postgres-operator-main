@@ -23,7 +23,6 @@ function pull_images(){
   if [[ -z $(coredgeio/postgres-operator:${operator_tag}) ]]
   then
     docker pull coredgeio/postgres-operator:${operator_tag}
-    docker pull coredgeio/postgres-spilo:${spilo_tag}
   fi
   operator_image=$(docker images --filter=reference="coredgeio/postgres-operator" --format "{{.Repository}}:{{.Tag}}" | head -1)
 }
@@ -85,7 +84,9 @@ function cleanup(){
 function main(){
   echo "Entering main function..."
   [[ -z ${NOCLEANUP-} ]] && trap "cleanup" QUIT TERM EXIT
-  pull_images
+  local spilo_image="$1"
+  local operator_tag="$2"
+  pull_images "${spilo_image}" "${operator_tag}"
   [[ ! -f ${kubeconfig_path} ]] && start_kind
   load_operator_image
   set_kind_api_server_ip
@@ -96,4 +97,5 @@ function main(){
   exit 0
 }
 
-"$1" $@
+# "$1" $@
+main "$@"
