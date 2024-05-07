@@ -102,5 +102,5 @@ function main(){
   exit 0
 }
 
-# "$1" $@
-main "$@"
+"$1" $@
+
