@@ -8,7 +8,7 @@ IFS=$'\n\t'
 
 readonly cluster_name="postgres-operator-e2e-tests"
 readonly kubeconfig_path="/tmp/kind-config-${cluster_name}"
-spilo_image="coredgeio/postgres-spilo:${1}"
+readonly spilo_image="coredgeio/postgres-spilo:3.0-p1"
 readonly e2e_test_runner_image="registry.opensource.zalan.do/acid/postgres-operator-e2e-tests-runner:0.4"
 
 export GOPATH=${GOPATH-~/go}
@@ -19,8 +19,7 @@ echo "Kubeconfig path: ${kubeconfig_path}"
 
 function pull_images(){
   echo "pulling image"
-  local spilo_tag="$1"
-  local operator_tag="$2"
+  local operator_tag="$1"
   if [[ -z $(coredgeio/postgres-operator:${operator_tag}) ]]
   then
     docker pull coredgeio/postgres-operator:${operator_tag}
@@ -41,7 +40,6 @@ function start_kind(){
   kind create cluster --name ${cluster_name} --config e2e/kind-cluster-postgres-operator-e2e-tests.yaml  
   echo "export and create cluster done!"
   echo "pulling spilo image"
-  spilo_image="coredgeio/postgres-spilo:${1}"
   docker pull "${spilo_image}"
   echo "done pulling spilo image"
   echo "kind load"
@@ -92,9 +90,8 @@ function cleanup(){
 function main(){
   echo "Entering main function..."
   [[ -z ${NOCLEANUP-} ]] && trap "cleanup" QUIT TERM EXIT
-  spilo_image="$1"
-  operator_tag="$2"
-  pull_images "${spilo_image}" "${operator_tag}"
+  operator_tag="$1"
+  pull_images
   [[ ! -f ${kubeconfig_path} ]] && start_kind
   load_operator_image
   set_kind_api_server_ip
