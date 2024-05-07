@@ -41,6 +41,7 @@ function start_kind(){
   kind create cluster --name ${cluster_name} --config e2e/kind-cluster-postgres-operator-e2e-tests.yaml  
   echo "export and create cluster done!"
   echo "pulling spilo image"
+  spilo_image="coredgeio/postgres-spilo:${1}"
   docker pull "${spilo_image}"
   echo "done pulling spilo image"
   echo "kind load"
