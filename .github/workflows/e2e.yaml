@@ -24,7 +24,8 @@ jobs:
       #     docker pull coredgeio/postgres-spilo:3.0-p1
       #     kind load docker-image coredgeio/${{ env.APP_NAME }}:v1.10.1 --name postgres-operator
       #     kind load docker-image coredgeio/postgres-spilo:3.0-p1  --name postgres-operator
-
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Run End-to-End Tests
         run: bash ./e2e/run.sh v1.10.1
         env:
