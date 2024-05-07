@@ -84,8 +84,8 @@ function cleanup(){
 function main(){
   echo "Entering main function..."
   [[ -z ${NOCLEANUP-} ]] && trap "cleanup" QUIT TERM EXIT
-  local spilo_image="$1"
-  local operator_tag="$2"
+  spilo_image="$1"
+  operator_tag="$2"
   pull_images "${spilo_image}" "${operator_tag}"
   [[ ! -f ${kubeconfig_path} ]] && start_kind
   load_operator_image
